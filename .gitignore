@@ -1,0 +1,11 @@
+# Sibling projects — not part of this repo
+Playwright-Sentinel/
+PlaywrightTypeScriptTutorialFullCourse/
+SDETInterviewPrep/
+playwright-demo-js/
+
+# Interview prep notes — local only
+PlaywrightE2E/knowledgebase/
+
+# OS
+.DS_Store
