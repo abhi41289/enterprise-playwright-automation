@@ -1,0 +1,37 @@
+{
+  "compilerOptions": {
+    /* Strictness — enforces type safety, eliminates implicit 'any' */
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+
+    /* Language target */
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "module": "CommonJS",
+    "moduleResolution": "node",
+
+    /* Output — type-check only, Playwright handles transpilation */
+    "noEmit": true,
+
+    /* Path aliases for cleaner imports */
+    "baseUrl": ".",
+    "paths": {
+      "@pages/*": ["pages/*"],
+      "@helpers/*": ["helpers/*"],
+      "@fixtures/*": ["fixtures/*"],
+      "@data/*": ["data/*"]
+    },
+
+    /* Code quality */
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+
+    /* Source maps for debugging */
+    "sourceMap": true
+  },
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules", "test-results", "playwright-report", ".playwright"]
+}

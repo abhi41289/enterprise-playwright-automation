@@ -1,0 +1,88 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# docker-compose.yml
+# Purpose:  Orchestrate Playwright test runs with pre-configured environment,
+#           artifact extraction, and named service profiles for different suites.
+#
+# Usage:
+#   Run all tests:   docker compose up playwright
+#   API tests only:  docker compose run --rm api
+#   UI tests only:   docker compose run --rm ui
+#   Smoke suite:     docker compose run --rm smoke
+#   E2E hybrid:      docker compose run --rm e2e
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── Default: run the full test suite ─────────────────────────────────────────
+  playwright:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # Load credentials and base URLs from .env (never hard-code secrets here).
+    # Create a .env file from .env.example and fill in the values.
+    env_file:
+      - .env
+    environment:
+      # CI mode activates retries, HTML+list reporters, and forbidOnly.
+      CI: "true"
+    volumes:
+      # Mount output directories so artifacts survive container exit.
+      # After the run: open playwright-report/index.html on the host.
+      - ./playwright-report:/app/playwright-report
+      - ./test-results:/app/test-results
+
+  # ── API tests only ────────────────────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      CI: "true"
+    command: ["npx", "playwright", "test", "tests/api/", "--project=api"]
+    volumes:
+      - ./playwright-report:/app/playwright-report
+      - ./test-results:/app/test-results
+
+  # ── UI tests only (cross-browser) ─────────────────────────────────────────────
+  ui:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      CI: "true"
+    command: ["npx", "playwright", "test", "tests/e2e/"]
+    volumes:
+      - ./playwright-report:/app/playwright-report
+      - ./test-results:/app/test-results
+
+  # ── E2E hybrid suite ──────────────────────────────────────────────────────────
+  e2e:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      CI: "true"
+    command: ["npx", "playwright", "test", "--grep", "@e2e"]
+    volumes:
+      - ./playwright-report:/app/playwright-report
+      - ./test-results:/app/test-results
+
+  # ── Smoke suite (critical-path only — fastest feedback) ───────────────────────
+  smoke:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      CI: "true"
+    command: ["npx", "playwright", "test", "--grep", "@smoke"]
+    volumes:
+      - ./playwright-report:/app/playwright-report
+      - ./test-results:/app/test-results

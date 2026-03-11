@@ -1,0 +1,63 @@
+{
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "project": "./tsconfig.json",
+    "ecmaVersion": "latest"
+  },
+  "plugins": ["@typescript-eslint", "playwright"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended-type-checked",
+    "plugin:playwright/recommended",
+    "prettier"
+  ],
+  "rules": {
+    /* No implicit any — use 'unknown' + type guards instead */
+    "@typescript-eslint/no-explicit-any": "error",
+    "@typescript-eslint/no-unsafe-assignment": "error",
+    "@typescript-eslint/no-unsafe-call": "error",
+    "@typescript-eslint/no-unsafe-member-access": "error",
+    "@typescript-eslint/no-unsafe-return": "error",
+
+    /* Enforce awaiting Promises — critical for Playwright async operations */
+    "@typescript-eslint/no-floating-promises": "error",
+    "@typescript-eslint/await-thenable": "error",
+
+    /* Playwright-specific: no hard waits, every test must assert */
+    "playwright/no-wait-for-timeout": "error",
+    /* assertFunctionNames: page object methods like loginPage.assertLoggedIn() wrap
+     * expect() internally. Pattern "*assert*" matches the full member-expression string
+     * (e.g. "loginPage.assertLoggedIn") via micromatch substring matching. */
+    "playwright/expect-expect": ["error", { "assertFunctionNames": ["expect", "*assert*"] }],
+    "playwright/no-skipped-test": "warn",
+
+    /* Code quality */
+    "@typescript-eslint/explicit-function-return-type": "warn",
+    "@typescript-eslint/consistent-type-imports": ["error", { "prefer": "type-imports" }],
+    "no-console": ["warn", { "allow": ["warn", "error"] }]
+  },
+  "ignorePatterns": ["node_modules/", "playwright-report/", "test-results/", "*.js"],
+  "overrides": [
+    {
+      /* All spec files: disable no-conditional-in-test.
+       * The `if (!result.ok) return` pattern is a TypeScript discriminated-union type guard,
+       * not conditional test logic — it narrows the type after an explicit assertion. */
+      "files": ["tests/**/*.spec.ts"],
+      "rules": {
+        "playwright/no-conditional-in-test": "off"
+      }
+    },
+    {
+      /* E2E spec files: disable expect-expect.
+       * POM tests delegate assertions to page object methods (e.g. loginPage.assertLoggedIn(),
+       * cartPage.assertCartEmpty()). Those methods contain expect() internally, but eslint-plugin-playwright
+       * v1.x cannot trace into external functions — it only sees the test body.
+       * API tests use direct expect() calls and keep the rule enabled via the base config. */
+      "files": ["tests/e2e/**/*.spec.ts"],
+      "rules": {
+        "playwright/expect-expect": "off"
+      }
+    }
+  ]
+}

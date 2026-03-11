@@ -1,0 +1,20 @@
+# Exclude large directories that must not be copied into the Docker build context.
+# This keeps 'docker build' fast and prevents stale artifacts leaking into the image.
+
+node_modules/
+playwright-report/
+test-results/
+.git/
+.github/
+knowledgebase/
+docs/
+
+# Environment files — never bake secrets into an image
+.env
+.env.*
+!.env.example
+
+# OS / editor artefacts
+.DS_Store
+*.swp
+*.swo

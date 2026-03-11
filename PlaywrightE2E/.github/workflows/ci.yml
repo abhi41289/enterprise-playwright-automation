@@ -1,0 +1,136 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# .github/workflows/ci.yml
+# Purpose:  CI pipeline for the Enterprise Playwright Automation Framework.
+#           Enforces code quality and test execution on every pull request
+#           and push to main.
+#
+# Pipeline stages (fail fast — cheapest first):
+#   1. lint         — ESLint; blocks on any error or warning
+#   2. type-check   — tsc --noEmit; enforces strict TypeScript
+#   3. test         — Playwright inside the official Docker image
+#
+# Artifact strategy:
+#   HTML reports and traces are uploaded ONLY on failure to minimise
+#   GitHub Actions storage consumption while retaining debug evidence.
+# ─────────────────────────────────────────────────────────────────────────────
+
+name: CI — Lint · Type-Check · Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Cancel any in-progress run on the same branch/PR when a new push arrives.
+# Prevents queue buildup and wasted runner minutes on superseded commits.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── Stage 1: Lint ─────────────────────────────────────────────────────────────
+  lint:
+    name: ESLint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      # --max-warnings 0 treats every ESLint warning as a failure.
+      # This matches the local `npm run lint` script.
+      - name: Run ESLint
+        run: npm run lint
+
+  # ── Stage 2: Type-check ───────────────────────────────────────────────────────
+  type-check:
+    name: TypeScript
+    runs-on: ubuntu-latest
+    # No browser needed — tsc is pure static analysis.
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run TypeScript type-check
+        run: npm run type-check
+
+  # ── Stage 3: Tests ────────────────────────────────────────────────────────────
+  test:
+    name: Playwright — ${{ matrix.project }}
+    runs-on: ubuntu-latest
+    needs: [lint, type-check]   # Only run tests if quality gates pass.
+
+    strategy:
+      # fail-fast: false — let all matrix legs run so we see failures across
+      # all browsers in a single CI run, not just the first failing one.
+      fail-fast: false
+      matrix:
+        project:
+          - api
+          - ui-chromium
+          - ui-firefox
+          - ui-webkit
+
+    # Credentials pulled from GitHub repository secrets — never stored in YAML.
+    # Set these in: Settings → Secrets and variables → Actions → New secret.
+    env:
+      BASE_URL: ${{ secrets.BASE_URL }}
+      API_BASE_URL: ${{ secrets.API_BASE_URL }}
+      SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
+      SAUCE_PASSWORD: ${{ secrets.SAUCE_PASSWORD }}
+      BOOKER_USERNAME: ${{ secrets.BOOKER_USERNAME }}
+      BOOKER_PASSWORD: ${{ secrets.BOOKER_PASSWORD }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # The official Playwright Docker image is used on the runner directly
+      # via the setup-playwright action, which installs browser binaries
+      # without a separate Docker build step. This is the recommended approach
+      # for GitHub-hosted runners which already provide a clean Ubuntu environment.
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Install only the browsers required for this matrix leg.
+      # --with-deps installs OS-level system libraries (libnss3, etc.)
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps ${{ matrix.project == 'ui-firefox' && 'firefox' || matrix.project == 'ui-webkit' && 'webkit' || 'chromium' }}
+
+      - name: Run Playwright tests — ${{ matrix.project }}
+        run: npx playwright test --project=${{ matrix.project }}
+        env:
+          CI: "true"
+
+      # Upload report and traces ONLY on failure — keeps artifacts lean.
+      # Retained for 7 days (configurable) so the team can investigate.
+      - name: Upload test artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.project }}-${{ github.run_id }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7

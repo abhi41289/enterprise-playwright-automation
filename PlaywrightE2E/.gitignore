@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Environment — NEVER commit real credentials
+.env
+.env.local
+.env.*.local
+
+# Playwright artifacts
+test-results/
+playwright-report/
+.playwright/
+blob-report/
+
+# TypeScript build output
+dist/
+*.js.map
+
+# macOS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/settings.json
+
+# Logs
+npm-debug.log*
+yarn-debug.log*

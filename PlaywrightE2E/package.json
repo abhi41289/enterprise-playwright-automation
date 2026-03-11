@@ -1,0 +1,53 @@
+{
+  "name": "enterprise-playwright-automation",
+  "version": "1.0.0",
+  "description": "Enterprise-grade test automation framework — TypeScript + Playwright + Docker. Targets SauceDemo (UI) and Restful-Booker (API).",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "test:debug": "playwright test --debug",
+    "test:api": "playwright test tests/api/",
+    "test:e2e": "playwright test tests/e2e/",
+    "test:visual": "playwright test tests/visual/",
+    "test:smoke": "playwright test --grep @smoke",
+    "test:regression": "playwright test --grep @regression",
+    "test:report": "playwright show-report",
+    "trace:view": "playwright show-trace",
+    "codegen": "playwright codegen",
+    "lint": "eslint . --ext .ts --max-warnings 0",
+    "lint:fix": "eslint . --ext .ts --fix",
+    "format": "prettier --write \"**/*.{ts,json,md,yml}\"",
+    "format:check": "prettier --check \"**/*.{ts,json,md,yml}\"",
+    "type-check": "tsc --noEmit",
+    "validate": "npm run type-check && npm run lint && npm run format:check"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.44.0",
+    "@types/node": "^20.12.0",
+    "@typescript-eslint/eslint-plugin": "^7.8.0",
+    "@typescript-eslint/parser": "^7.8.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-playwright": "^1.6.2",
+    "prettier": "^3.2.5",
+    "typescript": "^5.4.5",
+    "web-vitals": "^3.5.2",
+    "dotenv": "^16.4.5"
+  },
+  "keywords": [
+    "playwright",
+    "typescript",
+    "automation",
+    "e2e",
+    "api-testing",
+    "bfsi",
+    "pom",
+    "builder-pattern"
+  ],
+  "author": "",
+  "license": "MIT"
+}
