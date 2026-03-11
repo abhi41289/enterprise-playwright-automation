@@ -15,8 +15,8 @@
 
 # Pin to a specific Playwright version to match the package.json dependency.
 # Playwright bundles Chromium, Firefox, and WebKit inside this image.
-# Using the -noble (Ubuntu 24.04) variant for up-to-date system libs.
-FROM mcr.microsoft.com/playwright:v1.44.0-noble
+# Using the -jammy (Ubuntu 22.04) variant — the correct tag for v1.44.0.
+FROM mcr.microsoft.com/playwright:v1.44.0-jammy
 
 # ── Metadata ───────────────────────────────────────────────────────────────────
 LABEL maintainer="SDET Team"
