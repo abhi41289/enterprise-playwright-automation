@@ -53,9 +53,12 @@ test.describe('Restful-Booker — Authentication', { tag: ['@api'] }, () => {
 
     const { token } = result.data;
 
-    // Assert — token is a non-empty string
+    // Assert — token is a non-empty string.
+    // token is `string | undefined` (AuthResponse has both fields optional).
+    // Using optional chaining so tsc --strict does not flag `.length` on undefined.
+    // If token IS undefined, typeof check fails and length check produces 0 — both assertions fail.
     expect(typeof token, 'Expected token to be a string').toBe('string');
-    expect(token.length, 'Expected token to be non-empty').toBeGreaterThan(0);
+    expect(token?.length ?? 0, 'Expected token to be non-empty').toBeGreaterThan(0);
 
     // Assert — token is not the failure sentinel (failure uses `reason`, not `token`)
     expect(token, 'Expected token not to equal the bad-credentials sentinel').not.toBe(
